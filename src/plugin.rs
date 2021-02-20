@@ -15,7 +15,7 @@ use crate::{entity::Processed, utils::TessellationMode};
 use bevy::{
     app::{AppBuilder, Plugin},
     asset::{Assets, Handle},
-    ecs::{IntoSystem, Query, ResMut, SystemStage},
+    ecs::{IntoSystem, Query, ResMut, StageLabel, SystemStage},
     log::error,
     render::{
         draw::Visible,
@@ -29,10 +29,11 @@ use lyon_tessellation::{
 };
 
 /// Stages for this plugin.
-pub mod stage {
+#[derive(Debug, Hash, PartialEq, Eq, Clone, StageLabel)]
+pub enum Stage {
     /// The stage where the [`ShapeBundle`](crate::entity::ShapeBundle) gets
     /// completed.
-    pub const SHAPE: &str = "shape";
+    Shape,
 }
 
 /// The index type of a Bevy [`Mesh`](bevy::render::mesh::Mesh).
@@ -86,11 +87,11 @@ impl Plugin for ShapePlugin {
         app.insert_resource(fill_tess)
             .insert_resource(stroke_tess)
             .add_stage_after(
-                bevy::app::stage::UPDATE,
-                stage::SHAPE,
+                bevy::app::CoreStage::Update,
+                Stage::Shape,
                 SystemStage::parallel(),
             )
-            .add_system_to_stage(stage::SHAPE, complete_shape_bundle.system());
+            .add_system_to_stage(Stage::Shape, complete_shape_bundle.system());
     }
 }
 
